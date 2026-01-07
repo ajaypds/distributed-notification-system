@@ -1,0 +1,27 @@
+package com.example.apigateway.producer;
+
+import com.example.apigateway.dto.NotificationRequest;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Component;
+
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class NotificationEventProducer {
+
+    private static final String TOPIC = "notification-events";
+
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+
+    public void publish(NotificationRequest request){
+        try{
+            log.info("Publishing notification event to topic {}: {}", TOPIC, request);
+            kafkaTemplate.send(TOPIC, request.userId(), request);
+        }catch (Exception e){
+            throw new RuntimeException("Failed to publish notification event", e);
+        }
+
+    }
+}
