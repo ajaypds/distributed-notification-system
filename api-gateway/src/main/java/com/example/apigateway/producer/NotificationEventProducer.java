@@ -18,12 +18,14 @@ public class NotificationEventProducer {
 
     public void publish(NotificationRequest request){
         try{
-            NotificationEvent event = NotificationEvent.v1(request.userId(), request.message());
-            log.info("Publishing notification event: {}", event);
-            kafkaTemplate.send(TOPIC, event.eventId(), event);
+            kafkaTemplate.executeInTransaction(kt -> {
+                NotificationEvent event = NotificationEvent.v1(request.userId(), request.message());
+                log.info("Publishing notification event: {}", event);
+                kt.send(TOPIC, event.eventId(), event);
+                return true;
+            });
         }catch (Exception e){
             throw new RuntimeException("Failed to publish notification event", e);
         }
-
     }
 }
