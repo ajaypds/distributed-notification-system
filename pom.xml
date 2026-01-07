@@ -1,4 +1,9 @@
-<project>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
     <groupId>com.example.notification</groupId>
     <artifactId>notification-system</artifactId>
     <version>1.0.0</version>
@@ -6,16 +11,41 @@
 
     <modules>
         <module>api-gateway</module>
-        <module>user-preference-service</module>
+        <!-- <module>user-preference-service</module>
         <module>notification-dispatcher</module>
         <module>email-service</module>
         <module>sms-service</module>
-        <module>push-service</module>
-        <module>common</module>
+        <module>push-service</module> -->
     </modules>
 
     <properties>
         <java.version>17</java.version>
-        <spring.boot.version>3.2.0</spring.boot.version>
     </properties>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.1</version>
+        <relativePath/>
+    </parent>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.11.0</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 </project>
