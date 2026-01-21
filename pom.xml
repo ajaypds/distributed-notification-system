@@ -11,11 +11,13 @@
 
     <modules>
         <module>api-gateway</module>
-        <!-- <module>user-preference-service</module>
+        <module>user-preferences-service</module>
+        <!-- 
         <module>notification-dispatcher</module>
         <module>email-service</module>
         <module>sms-service</module>
-        <module>push-service</module> -->
+        <module>push-service</module> 
+        -->
     </modules>
 
     <properties>
