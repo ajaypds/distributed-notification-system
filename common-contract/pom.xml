@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="
+           http://maven.apache.org/POM/4.0.0
+           http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Parent project -->
+    <parent>
+        <groupId>com.example.notification</groupId>
+        <artifactId>notification-system</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <!-- Module metadata -->
+    <artifactId>common-contract</artifactId>
+    <packaging>jar</packaging>
+    <name>common-contract</name>
+    <version>1.0.0</version>
+
+    <!-- Java version alignment -->
+    <properties>
+        <java.version>17</java.version>
+        <maven.compiler.release>${java.version}</maven.compiler.release>
+    </properties>
+
+    <!-- No Spring, no DB, no framework -->
+    <dependencies>
+        <!-- Intentionally empty -->
+    </dependencies>
+
+</project>
