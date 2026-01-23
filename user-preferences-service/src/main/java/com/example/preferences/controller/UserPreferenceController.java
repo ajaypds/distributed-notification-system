@@ -1,5 +1,6 @@
 package com.example.preferences.controller;
 
+import com.example.contract.UserPreferenceDTO;
 import com.example.preferences.model.UserPreference;
 import com.example.preferences.service.UserPreferenceService;
 import lombok.AllArgsConstructor;
@@ -14,9 +15,16 @@ public class UserPreferenceController {
     private final UserPreferenceService service;
 
     @GetMapping("/{userId}")
-    public ResponseEntity<UserPreference> get(@PathVariable String userId){
-        UserPreference preference = service.getPreferences(userId);
-        return ResponseEntity.ok(preference);
+    public ResponseEntity<UserPreferenceDTO> get(@PathVariable String userId){
+        UserPreference pref = service.getPreferences(userId);
+        return ResponseEntity.ok(
+                new UserPreferenceDTO(
+                        pref.getUserId(),
+                        pref.isEmailEnabled(),
+                        pref.isSmsEnabled(),
+                        pref.isPushEnabled()
+                )
+        );
     }
 
     @PostMapping
