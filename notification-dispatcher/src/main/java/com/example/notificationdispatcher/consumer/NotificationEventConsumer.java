@@ -1,6 +1,7 @@
 package com.example.notificationdispatcher.consumer;
 
-import com.example.notificationdispatcher.event.NotificationEvent;
+//import com.example.notificationdispatcher.event.NotificationEvent;
+import com.example.contract.NotificationEvent;
 import com.example.notificationdispatcher.service.DispatcherService;
 import lombok.AllArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -18,6 +19,7 @@ public class NotificationEventConsumer {
 
     @KafkaListener(topics = "notification-events")
     public void consume(NotificationEvent event) {
+
         dispatcherService.process(event);
     }
 }

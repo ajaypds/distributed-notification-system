@@ -1,13 +1,16 @@
 package com.example.notificationdispatcher.service;
 
+import com.example.contract.NotificationEvent;
 import com.example.contract.UserPreferenceDTO;
 import com.example.notificationdispatcher.client.*;
-import com.example.notificationdispatcher.event.NotificationEvent;
+//import com.example.notificationdispatcher.event.NotificationEvent;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class DispatcherService {
 
     private final IdempotencyService idempotencyService;
@@ -35,6 +38,7 @@ public class DispatcherService {
         if (idempotencyService.isDuplicate(event.eventId())) {
             return;
         }
+        log.info("Dispatching event: {}", event);
 
         UserPreferenceDTO pref = preferenceClient.fetch(event.userId());
 

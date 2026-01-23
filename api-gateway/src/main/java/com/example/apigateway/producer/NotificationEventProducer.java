@@ -1,7 +1,8 @@
 package com.example.apigateway.producer;
 
 import com.example.apigateway.dto.NotificationRequest;
-import com.example.apigateway.event.NotificationEvent;
+//import com.example.apigateway.event.NotificationEvent;
+import com.example.contract.NotificationEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -14,7 +15,7 @@ public class NotificationEventProducer {
 
     private static final String TOPIC = "notification-events";
 
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaTemplate<String, NotificationEvent> kafkaTemplate;
 
     public void publish(NotificationRequest request){
         try{
