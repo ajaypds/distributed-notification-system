@@ -4,7 +4,9 @@ import com.example.notification.proto.NotificationRequest;
 import com.example.notification.proto.NotificationServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import org.springframework.stereotype.Component;
 
+@Component
 public class EmailGrpcClient {
 
     private final NotificationServiceGrpc.NotificationServiceBlockingStub stub;
