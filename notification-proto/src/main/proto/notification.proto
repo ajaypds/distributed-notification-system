@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package notification;
+
+option java_package = "com.example.notification.proto";
+option java_multiple_files = true;
+
+service NotificationService {
+  rpc Send(NotificationRequest) returns (NotificationResponse);
+}
+
+message NotificationRequest {
+  string userId = 1;
+  string message = 2;
+}
+
+message NotificationResponse {
+  bool success = 1;
+}
