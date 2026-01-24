@@ -3,10 +3,15 @@ package com.example.notificationdispatcher.service;
 import com.example.contract.NotificationEvent;
 import com.example.contract.UserPreferenceDTO;
 import com.example.notificationdispatcher.client.*;
-//import com.example.notificationdispatcher.event.NotificationEvent;
+import com.example.notificationdispatcher.exception.PermanentFailureException;
+import com.example.notificationdispatcher.exception.TransientFailureException;
+import io.grpc.StatusRuntimeException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpServerErrorException;
+
+import java.net.UnknownHostException;
 
 @Service
 @AllArgsConstructor
@@ -19,37 +24,63 @@ public class DispatcherService {
     private final SmsGrpcClient smsClient;
     private final PushGrpcClient pushClient;
 
-//    public DispatcherService(
-//            IdempotencyService idempotencyService,
-//            PreferenceClient preferenceClient,
-//            EmailGrpcClient emailClient,
-//            SmsGrpcClient smsClient,
-//            PushGrpcClient pushClient) {
-//
-//        this.idempotencyService = idempotencyService;
-//        this.preferenceClient = preferenceClient;
-//        this.emailClient = emailClient;
-//        this.smsClient = smsClient;
-//        this.pushClient = pushClient;
-//    }
-
     public void process(NotificationEvent event) {
 
         if (idempotencyService.isDuplicate(event.eventId())) {
             return;
         }
-        log.info("Dispatching event: {}", event);
+        log.info("Consuming event: {}", event);
 
-        UserPreferenceDTO pref = preferenceClient.fetch(event.userId());
+        try{
 
-        if (pref.emailEnabled()) {
-            emailClient.send(event.userId(), event.message());
+            UserPreferenceDTO pref = preferenceClient.fetch(event.userId());
+            log.info("Start sending to clients");
+            if (pref.emailEnabled()) {
+                try{
+                    log.info("Sending event to EmailClient!");
+                    emailClient.send(event.userId(), event.message());
+                }
+                catch(UnknownHostException ex){
+                    log.error("Error occurred while sending event to EmailClient");
+                    throw ex;
+                }
+            }
+            if (pref.smsEnabled()) {
+
+                try{
+                    log.info("Sending event to SMSClient!");
+                    smsClient.send(event.userId(), event.message());
+                }
+                catch(UnknownHostException ex){
+                    log.error("Error occurred while sending event to SMSClient");
+                    throw ex;
+                }
+            }
+            if (pref.pushEnabled()) {
+
+                try{
+                    log.info("Sending event to PushClient!");
+                    pushClient.send(event.userId(), event.message());
+                }
+                catch(UnknownHostException ex){
+                    log.error("Error occurred while sending event to PushClient");
+                    throw ex;
+                }
+            }
         }
-        if (pref.smsEnabled()) {
-            smsClient.send(event.userId(), event.message());
+        catch (UnknownHostException | StatusRuntimeException ex) {
+            // gRPC / network / downstream unavailable
+            log.error("Transient failure occurred at DispatcherService!");
+            throw new TransientFailureException("Downstream failure", ex);
         }
-        if (pref.pushEnabled()) {
-            pushClient.send(event.userId(), event.message());
+        catch(HttpServerErrorException ex){
+            log.error("Permanent failure occurred at DispatcherService due to HttpServerErrorException!");
+            throw new PermanentFailureException("HttpServerErrorException");
+        }
+        catch (Exception ex) {
+            // bad data, mapping errors, etc.
+            log.error("Permanent failure occurred at DispatcherService!",ex);
+            throw new PermanentFailureException("Non-recoverable failure");
         }
     }
 }
