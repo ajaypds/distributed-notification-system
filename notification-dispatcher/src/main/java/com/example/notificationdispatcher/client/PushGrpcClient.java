@@ -6,6 +6,8 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.springframework.stereotype.Component;
 
+import java.net.UnknownHostException;
+
 @Component
 public class PushGrpcClient {
 
@@ -20,7 +22,7 @@ public class PushGrpcClient {
         this.stub = NotificationServiceGrpc.newBlockingStub(channel);
     }
 
-    public void send(String userId, String message) {
+    public void send(String userId, String message) throws UnknownHostException {
         stub.send(
                 NotificationRequest.newBuilder()
                         .setUserId(userId)

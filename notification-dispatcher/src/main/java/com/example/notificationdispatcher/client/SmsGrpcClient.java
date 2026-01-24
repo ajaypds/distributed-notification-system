@@ -6,6 +6,8 @@ import com.example.notification.proto.NotificationRequest;
 import com.example.notification.proto.NotificationServiceGrpc;
 import org.springframework.stereotype.Component;
 
+import java.net.UnknownHostException;
+
 @Component
 public class SmsGrpcClient {
 
@@ -20,7 +22,7 @@ public class SmsGrpcClient {
         this.stub = NotificationServiceGrpc.newBlockingStub(channel);
     }
 
-    public void send(String userId, String message) {
+    public void send(String userId, String message) throws UnknownHostException {
         stub.send(
                 NotificationRequest.newBuilder()
                         .setUserId(userId)
