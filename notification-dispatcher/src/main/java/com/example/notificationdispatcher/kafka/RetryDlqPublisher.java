@@ -1,6 +1,7 @@
 package com.example.notificationdispatcher.kafka;
 
 import com.example.contract.NotificationEvent;
+import com.example.notificationdispatcher.retry.RetryBackoffPolicy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -17,12 +18,16 @@ public class RetryDlqPublisher {
 
     public void publishToRetry(NotificationEvent event, int retryCount) {
         log.info("Publishing event to retry topic: {}, retryCount: {}", event.eventId(), retryCount);
+
+        long nextRetryAt = System.currentTimeMillis() + RetryBackoffPolicy.backoffMillis(retryCount);
+
         kafkaTemplate.send(
                 MessageBuilder
                         .withPayload(event)
                         .setHeader(KafkaHeaders.TOPIC, KafkaRetryConstants.RETRY_TOPIC)
                         .setHeader(KafkaHeaders.KEY, event.eventId())
                         .setHeader(KafkaRetryConstants.RETRY_COUNT_HEADER, retryCount)
+                        .setHeader(KafkaRetryConstants.NEXT_RETRY_AT_HEADER, nextRetryAt)
                         .build()
         );
     }
