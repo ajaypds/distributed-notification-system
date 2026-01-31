@@ -5,7 +5,7 @@ public final class KafkaRetryConstants {
     private KafkaRetryConstants() {}
 
     public static final String RETRY_COUNT_HEADER = "retry-count";
-
+    public static final String NEXT_RETRY_AT_HEADER = "next-retry-at";
     public static final int MAX_RETRIES = 3;
 
     public static final String MAIN_TOPIC = "notification-events";
