@@ -1,6 +1,6 @@
 package com.example.notificationdispatcher.retry;
 
-public class RetryBackoffPolicy {
+public final class RetryBackoffPolicy {
 
     private RetryBackoffPolicy() {}
 
