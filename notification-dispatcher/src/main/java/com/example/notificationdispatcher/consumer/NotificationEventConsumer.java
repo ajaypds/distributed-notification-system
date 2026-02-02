@@ -36,8 +36,10 @@ public class NotificationEventConsumer {
         } catch(TransientFailureException ex){
             log.error("Transient failure occurred at NotificationEventConsumer");
             if(currentRetry < KafkaRetryConstants.MAX_RETRIES){
+                log.info("Publishing event to retry topic from NotificationEventConsumer, currentRetry: {}", currentRetry);
                 retryDlqPublisher.publishToRetry(event, currentRetry + 1);
             }else{
+                log.info("Max retries exceeded, publishing event to DLQ from NotificationEventConsumer");
                 retryDlqPublisher.publishToDlq(event, "MAX_RETRIES_EXCEEDED");
             }
         }catch(PermanentFailureException ex){
