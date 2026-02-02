@@ -40,8 +40,10 @@ public class RetryEventConsumer {
         catch (TransientFailureException ex) {
             log.error("Exception failure occurred at RetryEventConsumer");
             if (retryCount < KafkaRetryConstants.MAX_RETRIES) {
+                log.info("Publishing event to retry topic from RetryEventConsumer, retryCount: {}", retryCount);
                 retryDlqPublisher.publishToRetry(event, retryCount + 1);
             } else {
+                log.info("Max retries exceeded, publishing event to DLQ from RetryEventConsumer");
                 retryDlqPublisher.publishToDlq(event, "RETRY_EXHAUSTED");
             }
         }
