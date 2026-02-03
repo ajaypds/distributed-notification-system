@@ -17,17 +17,20 @@ public class RetryDlqPublisher {
     private final KafkaTemplate<String, NotificationEvent> kafkaTemplate;
 
     public void publishToRetry(NotificationEvent event, int retryCount) {
-        log.info("Publishing event to retry topic: {}, retryCount: {}", event.eventId(), retryCount);
 
-        long nextRetryAt = System.currentTimeMillis() + RetryBackoffPolicy.backoffMillis(retryCount);
+        String retryTopic = switch (retryCount) {
+            case 1 -> KafkaRetryConstants.RETRY_5S;
+            case 2 -> KafkaRetryConstants.RETRY_15S;
+            default -> KafkaRetryConstants.RETRY_30S;
+        };
 
+        log.info("Publishing event to retry topic: {}, retryTopic: {}", event.eventId(), retryTopic);
         kafkaTemplate.send(
                 MessageBuilder
                         .withPayload(event)
-                        .setHeader(KafkaHeaders.TOPIC, KafkaRetryConstants.RETRY_TOPIC)
+                        .setHeader(KafkaHeaders.TOPIC, retryTopic)
                         .setHeader(KafkaHeaders.KEY, event.eventId())
                         .setHeader(KafkaRetryConstants.RETRY_COUNT_HEADER, retryCount)
-                        .setHeader(KafkaRetryConstants.NEXT_RETRY_AT_HEADER, nextRetryAt)
                         .build()
         );
     }
