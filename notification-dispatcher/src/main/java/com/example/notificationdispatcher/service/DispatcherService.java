@@ -26,7 +26,8 @@ public class DispatcherService {
 
     public void process(NotificationEvent event) {
 
-        if (idempotencyService.isDuplicate(event.eventId())) {
+        if (idempotencyService.isAlreadyProcessed(event.eventId())) {
+            log.info("Duplicate event detected, skipping processing for eventId: {}", event.eventId());
             return;
         }
         log.info("Consuming event: {}", event);
@@ -67,6 +68,7 @@ public class DispatcherService {
                     throw ex;
                 }
             }
+            idempotencyService.markProcessed(event.eventId());
         }
         catch (UnknownHostException | StatusRuntimeException ex) {
             // gRPC / network / downstream unavailable
