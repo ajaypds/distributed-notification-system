@@ -7,14 +7,19 @@ import org.springframework.stereotype.Service;
 public class IdempotencyService {
 
     private final StringRedisTemplate redisTemplate;
+    private static final String PROCESSED_KEY = "processed-events";
 
     public IdempotencyService(StringRedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
-    public boolean isDuplicate(String eventId) {
-        Long added = redisTemplate.opsForSet()
-                .add("processed-events", eventId);
-        return added == 0;
+    public boolean isAlreadyProcessed(String eventId) {
+        return Boolean.TRUE.equals(
+                redisTemplate.opsForSet().isMember(PROCESSED_KEY, eventId)
+        );
+    }
+
+    public void markProcessed(String eventId) {
+        redisTemplate.opsForSet().add(PROCESSED_KEY, eventId);
     }
 }
