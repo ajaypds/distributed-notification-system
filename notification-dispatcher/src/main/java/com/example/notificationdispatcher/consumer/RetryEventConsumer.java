@@ -20,35 +20,58 @@ public class RetryEventConsumer {
     private final DispatcherService dispatcherService;
     private final RetryDlqPublisher retryDlqPublisher;
 
-    @KafkaListener(topics = KafkaRetryConstants.RETRY_TOPIC)
-    public void retry(
-            NotificationEvent event,
-            @Header(KafkaRetryConstants.RETRY_COUNT_HEADER) int retryCount,
-            @Header(KafkaRetryConstants.NEXT_RETRY_AT_HEADER) long nextRetryAt) {
-
-        long now = System.currentTimeMillis();
-
-        if(now < nextRetryAt){
-            retryDlqPublisher.publishToRetry(event, retryCount);
-            return;
-        }
+    @KafkaListener(topics = KafkaRetryConstants.RETRY_5S)
+    public void retry5s(NotificationEvent event) throws InterruptedException {
+        log.info("Received event in retry5s topic: {}", event);
+        Thread.sleep(5_000);
 
         try {
-            log.info("Calling dispatcher service in RetryEventConsumer to process event!");
+            log.info("Calling dispatcher service in retry5s to process event!");
+            dispatcherService.process(event);
+            log.info("Event processed successfully in retry5s topic: {}", event);
+        }
+        catch (TransientFailureException ex) {
+            log.info("Transient failure occurred at retry5s, publishing event to retry topic from RetryEventConsumer. retryCount: 2");
+            retryDlqPublisher.publishToRetry(event, 2);
+        }
+        catch (PermanentFailureException ex) {
+            log.info("Permanent failure occurred at retry5s, publishing event to DLQ from RetryEventConsumer");
+            retryDlqPublisher.publishToDlq(event, "PERMANENT_FAILURE");
+        }
+    }
+
+    @KafkaListener(topics = KafkaRetryConstants.RETRY_15S)
+    public void retry15s(NotificationEvent event) throws InterruptedException {
+        log.info("Received event in retry15s topic: {}", event);
+        Thread.sleep(15_000);
+
+        try {
+            log.info("Calling dispatcher service in retry15s to process event!");
             dispatcherService.process(event);
         }
         catch (TransientFailureException ex) {
-            log.error("Exception failure occurred at RetryEventConsumer");
-            if (retryCount < KafkaRetryConstants.MAX_RETRIES) {
-                log.info("Publishing event to retry topic from RetryEventConsumer, retryCount: {}", retryCount);
-                retryDlqPublisher.publishToRetry(event, retryCount + 1);
-            } else {
-                log.info("Max retries exceeded, publishing event to DLQ from RetryEventConsumer");
-                retryDlqPublisher.publishToDlq(event, "RETRY_EXHAUSTED");
-            }
+            log.info("Transient failure occurred at retry15s, publishing event to retry topic from RetryEventConsumer. retryCount: 3");
+            retryDlqPublisher.publishToRetry(event, 3);
         }
-        catch(PermanentFailureException ex){
-            retryDlqPublisher.publishToDlq(event, "PERMANENT FAILURE");
+        catch (PermanentFailureException ex) {
+            log.info("Permanent failure occurred at retry15s, publishing event to DLQ from RetryEventConsumer");
+            retryDlqPublisher.publishToDlq(event, "PERMANENT_FAILURE");
         }
     }
+
+    @KafkaListener(topics = KafkaRetryConstants.RETRY_30S)
+    public void retry30s(NotificationEvent event) throws InterruptedException {
+        log.info("Received event in retry30s topic: {}", event);
+        Thread.sleep(30_000);
+
+        try {
+            log.info("Calling dispatcher service in retry30s to process event!");
+            dispatcherService.process(event);
+        }
+        catch (Exception ex) {
+            log.info("Transient failure occurred at retry30s, max retries exhausted, publishing event to DLQ from RetryEventConsumer");
+            retryDlqPublisher.publishToDlq(event, "RETRY_EXHAUSTED");
+        }
+    }
+
 }
