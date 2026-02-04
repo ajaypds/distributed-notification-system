@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: sms-service
+
+server:
+  port: 0   # HTTP not used
+
+grpc:
+  server:
+    port: 9090
+
+email:
+  failure-rate: 0.4    # 40% failure
+  latency-ms: 800      # artificial delay
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,in
