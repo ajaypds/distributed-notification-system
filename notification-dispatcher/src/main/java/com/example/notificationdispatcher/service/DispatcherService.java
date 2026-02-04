@@ -40,6 +40,7 @@ public class DispatcherService {
                 try{
                     log.info("Sending event to EmailClient!");
                     emailClient.send(event.userId(), event.message());
+                    log.info("Finished sending event to EmailClient!");
                 }
                 catch(UnknownHostException ex){
                     log.error("Error occurred while sending event to EmailClient");
@@ -51,6 +52,7 @@ public class DispatcherService {
                 try{
                     log.info("Sending event to SMSClient!");
                     smsClient.send(event.userId(), event.message());
+                    log.info("Finished sending event to SMSClient!");
                 }
                 catch(UnknownHostException ex){
                     log.error("Error occurred while sending event to SMSClient");
@@ -62,6 +64,7 @@ public class DispatcherService {
                 try{
                     log.info("Sending event to PushClient!");
                     pushClient.send(event.userId(), event.message());
+                    log.info("Finished sending event to PushClient!");
                 }
                 catch(UnknownHostException ex){
                     log.error("Error occurred while sending event to PushClient");
