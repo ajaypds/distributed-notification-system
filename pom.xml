@@ -10,15 +10,15 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>notification-proto</module>
         <module>api-gateway</module>
         <module>user-preferences-service</module>
         <module>common-contract</module>
-        <module>notification-proto</module>
         <module>notification-dispatcher</module>
-        <!-- 
         <module>email-service</module>
         <module>sms-service</module>
         <module>push-service</module> 
+        <!-- 
         -->
     </modules>
 
