@@ -30,7 +30,7 @@ public class DispatcherService {
             log.info("Duplicate event detected, skipping processing for eventId: {}", event.eventId());
             return;
         }
-        log.info("Consuming event: {}", event);
+        log.info("Processing event: {} in DispatcherService", event);
 
         try{
 
@@ -41,13 +41,11 @@ public class DispatcherService {
                     if(idempotencyService.isEmailProcessed(event.eventId())) {
                         log.info("Email already sent for eventId: {}", event.eventId());
                     }else{
-                        log.info("Sending event to EmailClient!");
                         emailClient.send(event.userId(), event.message());
-                        log.info("Finished sending event to EmailClient!");
                         idempotencyService.markEmailProcessed(event.eventId());
                     }
                 }
-                catch(UnknownHostException ex){
+                catch(StatusRuntimeException ex){
                     log.error("Error occurred while sending event to EmailClient");
                     throw ex;
                 }
@@ -58,13 +56,11 @@ public class DispatcherService {
                     if(idempotencyService.isSmsProcessed(event.eventId())) {
                         log.info("SMS already sent for eventId: {}", event.eventId());
                     }else{
-                        log.info("Sending event to SMSClient!");
                         smsClient.send(event.userId(), event.message());
-                        log.info("Finished sending event to SMSClient!");
                         idempotencyService.markSmsProcessed(event.eventId());
                     }
                 }
-                catch(UnknownHostException ex){
+                catch(StatusRuntimeException ex){
                     log.error("Error occurred while sending event to SMSClient");
                     throw ex;
                 }
@@ -75,20 +71,18 @@ public class DispatcherService {
                     if(idempotencyService.isPushProcessed(event.eventId())) {
                         log.info("Push notification already sent for eventId: {}", event.eventId());
                     }else{
-                        log.info("Sending event to PushClient!");
                         pushClient.send(event.userId(), event.message());
-                        log.info("Finished sending event to PushClient!");
                         idempotencyService.markPushProcessed(event.eventId());
                     }
                 }
-                catch(UnknownHostException ex){
+                catch(StatusRuntimeException ex){
                     log.error("Error occurred while sending event to PushClient");
                     throw ex;
                 }
             }
             idempotencyService.markProcessed(event.eventId());
         }
-        catch (UnknownHostException | StatusRuntimeException ex) {
+        catch (StatusRuntimeException ex) {
             // gRPC / network / downstream unavailable
             log.error("Transient failure occurred at DispatcherService!");
             throw new TransientFailureException("Downstream failure", ex);
