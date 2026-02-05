@@ -38,9 +38,14 @@ public class DispatcherService {
             log.info("Start sending to clients");
             if (pref.emailEnabled()) {
                 try{
-                    log.info("Sending event to EmailClient!");
-                    emailClient.send(event.userId(), event.message());
-                    log.info("Finished sending event to EmailClient!");
+                    if(idempotencyService.isEmailProcessed(event.eventId())) {
+                        log.info("Email already sent for eventId: {}", event.eventId());
+                    }else{
+                        log.info("Sending event to EmailClient!");
+                        emailClient.send(event.userId(), event.message());
+                        log.info("Finished sending event to EmailClient!");
+                        idempotencyService.markEmailProcessed(event.eventId());
+                    }
                 }
                 catch(UnknownHostException ex){
                     log.error("Error occurred while sending event to EmailClient");
@@ -50,9 +55,14 @@ public class DispatcherService {
             if (pref.smsEnabled()) {
 
                 try{
-                    log.info("Sending event to SMSClient!");
-                    smsClient.send(event.userId(), event.message());
-                    log.info("Finished sending event to SMSClient!");
+                    if(idempotencyService.isSmsProcessed(event.eventId())) {
+                        log.info("SMS already sent for eventId: {}", event.eventId());
+                    }else{
+                        log.info("Sending event to SMSClient!");
+                        smsClient.send(event.userId(), event.message());
+                        log.info("Finished sending event to SMSClient!");
+                        idempotencyService.markSmsProcessed(event.eventId());
+                    }
                 }
                 catch(UnknownHostException ex){
                     log.error("Error occurred while sending event to SMSClient");
@@ -62,9 +72,14 @@ public class DispatcherService {
             if (pref.pushEnabled()) {
 
                 try{
-                    log.info("Sending event to PushClient!");
-                    pushClient.send(event.userId(), event.message());
-                    log.info("Finished sending event to PushClient!");
+                    if(idempotencyService.isPushProcessed(event.eventId())) {
+                        log.info("Push notification already sent for eventId: {}", event.eventId());
+                    }else{
+                        log.info("Sending event to PushClient!");
+                        pushClient.send(event.userId(), event.message());
+                        log.info("Finished sending event to PushClient!");
+                        idempotencyService.markPushProcessed(event.eventId());
+                    }
                 }
                 catch(UnknownHostException ex){
                     log.error("Error occurred while sending event to PushClient");
