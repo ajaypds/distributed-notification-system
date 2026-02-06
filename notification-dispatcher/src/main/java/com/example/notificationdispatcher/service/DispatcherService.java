@@ -5,6 +5,7 @@ import com.example.contract.UserPreferenceDTO;
 import com.example.notificationdispatcher.client.*;
 import com.example.notificationdispatcher.exception.PermanentFailureException;
 import com.example.notificationdispatcher.exception.TransientFailureException;
+import com.example.notificationdispatcher.metrics.DispatcherMetrics;
 import io.grpc.StatusRuntimeException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,7 @@ public class DispatcherService {
     private final EmailGrpcClient emailClient;
     private final SmsGrpcClient smsClient;
     private final PushGrpcClient pushClient;
+    private final DispatcherMetrics metrics;
 
     public void process(NotificationEvent event) {
 
@@ -81,6 +83,7 @@ public class DispatcherService {
                 }
             }
             idempotencyService.markProcessed(event.eventId());
+            metrics.incrementSuccess();
         }
         catch (StatusRuntimeException ex) {
             // gRPC / network / downstream unavailable
@@ -93,6 +96,7 @@ public class DispatcherService {
         }
         catch (Exception ex) {
             // bad data, mapping errors, etc.
+            metrics.incrementFailure();
             log.error("Permanent failure occurred at DispatcherService!",ex);
             throw new PermanentFailureException("Non-recoverable failure");
         }
