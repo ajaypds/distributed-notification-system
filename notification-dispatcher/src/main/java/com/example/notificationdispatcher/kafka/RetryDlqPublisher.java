@@ -1,7 +1,7 @@
 package com.example.notificationdispatcher.kafka;
 
 import com.example.contract.NotificationEvent;
-import com.example.notificationdispatcher.retry.RetryBackoffPolicy;
+import com.example.notificationdispatcher.metrics.DispatcherMetrics;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -15,8 +15,11 @@ import org.springframework.stereotype.Component;
 public class RetryDlqPublisher {
 
     private final KafkaTemplate<String, NotificationEvent> kafkaTemplate;
+    private final DispatcherMetrics metrics;
 
     public void publishToRetry(NotificationEvent event, int retryCount) {
+
+        metrics.incrementRetry();
 
         String retryTopic = switch (retryCount) {
             case 1 -> KafkaRetryConstants.RETRY_5S;
@@ -37,6 +40,7 @@ public class RetryDlqPublisher {
 
     public void publishToDlq(NotificationEvent event, String reason) {
         log.info("Publishing event to DLQ: {}, reason: {}", event, reason);
+        metrics.incrementDlq();
         kafkaTemplate.send(
                 MessageBuilder
                         .withPayload(event)
