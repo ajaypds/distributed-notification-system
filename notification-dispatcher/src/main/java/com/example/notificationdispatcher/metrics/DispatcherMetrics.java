@@ -10,6 +10,7 @@ public class DispatcherMetrics {
 
     private final Counter retryCounter;
     private final Counter dlqCounter;
+    private final Counter dlqReplayCounter;
     private final Counter successCounter;
     private final Counter failureCounter;
 
@@ -20,6 +21,10 @@ public class DispatcherMetrics {
 
         this.dlqCounter = Counter.builder("dispatcher_dlq_total")
                 .description("Total DLQ events")
+                .register(registry);
+
+        this.dlqReplayCounter = Counter.builder("dispatcher_dlq_replay_total")
+                .description("Total DLQ Replay events")
                 .register(registry);
 
         this.successCounter = Counter.builder("dispatcher_processed_success_total")
@@ -37,6 +42,10 @@ public class DispatcherMetrics {
 
     public void incrementDlq(){
         dlqCounter.increment();
+    }
+
+    public void incrementDlqReplay(){
+        dlqReplayCounter.increment();
     }
 
     public void incrementSuccess() {
