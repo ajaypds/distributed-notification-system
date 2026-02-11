@@ -32,6 +32,7 @@
 		<protobuf-java.version>4.33.2</protobuf-java.version>
 		<spring-cloud.version>2025.1.0</spring-cloud.version>
 		<spring-grpc.version>1.0.1</spring-grpc.version>
+		<otel.version>1.38.0</otel.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -112,6 +113,43 @@
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-core</artifactId>
 		</dependency>
+
+		<!-- OpenTelemetry API + SDK -->
+		<dependency>
+			<groupId>io.opentelemetry</groupId>
+			<artifactId>opentelemetry-api</artifactId>
+<!--			<version>${otel.version}</version>-->
+		</dependency>
+
+		<dependency>
+			<groupId>io.opentelemetry</groupId>
+			<artifactId>opentelemetry-sdk</artifactId>
+<!--			<version>${otel.version}</version>-->
+		</dependency>
+
+		<!-- OTLP exporter -->
+		<dependency>
+			<groupId>io.opentelemetry</groupId>
+			<artifactId>opentelemetry-exporter-otlp</artifactId>
+<!--			<version>${otel.version}</version>-->
+		</dependency>
+
+		<!-- Context propagation -->
+		<dependency>
+			<groupId>io.opentelemetry</groupId>
+			<artifactId>opentelemetry-context</artifactId>
+<!--			<version>${otel.version}</version>-->
+		</dependency>
+
+		<!-- semconv -->
+		<!-- Source: https://mvnrepository.com/artifact/io.opentelemetry.semconv/opentelemetry-semconv -->
+		<dependency>
+			<groupId>io.opentelemetry.semconv</groupId>
+			<artifactId>opentelemetry-semconv</artifactId>
+			<version>${otel.version}</version>
+			<!--			<scope>compile</scope>-->
+		</dependency>
+
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
@@ -126,6 +164,13 @@
 				<groupId>org.springframework.grpc</groupId>
 				<artifactId>spring-grpc-dependencies</artifactId>
 				<version>${spring-grpc.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>io.opentelemetry</groupId>
+				<artifactId>opentelemetry-bom</artifactId>
+				<version>1.55.0</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
