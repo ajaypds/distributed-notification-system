@@ -29,6 +29,7 @@
 	<properties>
 		<java.version>17</java.version>
 		<grpc.version>1.77.1</grpc.version>
+		<otel.version>1.38.0</otel.version>
 		<protobuf-java.version>4.33.4</protobuf-java.version>
 		<spring-grpc.version>1.0.2</spring-grpc.version>
 	</properties>
@@ -41,10 +42,10 @@
 			<groupId>io.grpc</groupId>
 			<artifactId>grpc-services</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.grpc</groupId>
-			<artifactId>spring-grpc-spring-boot-starter</artifactId>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>org.springframework.grpc</groupId>-->
+<!--			<artifactId>spring-grpc-spring-boot-starter</artifactId>-->
+<!--		</dependency>-->
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -66,6 +67,46 @@
 			<artifactId>lombok</artifactId>
 			<scope>provided</scope>
 		</dependency>
+		<!-- OpenTelemetry API + SDK -->
+		<dependency>
+			<groupId>io.opentelemetry</groupId>
+			<artifactId>opentelemetry-api</artifactId>
+<!--			<version>${otel.version}</version>-->
+		</dependency>
+
+		<dependency>
+			<groupId>io.opentelemetry</groupId>
+			<artifactId>opentelemetry-sdk</artifactId>
+<!--			<version>${otel.version}</version>-->
+		</dependency>
+
+		<!-- OTLP exporter -->
+		<dependency>
+			<groupId>io.opentelemetry</groupId>
+			<artifactId>opentelemetry-exporter-otlp</artifactId>
+<!--			<version>${otel.version}</version>-->
+		</dependency>
+		<!-- semconv -->
+		<!-- Source: https://mvnrepository.com/artifact/io.opentelemetry.semconv/opentelemetry-semconv -->
+		<dependency>
+			<groupId>io.opentelemetry.semconv</groupId>
+			<artifactId>opentelemetry-semconv</artifactId>
+			<version>${otel.version}</version>
+			<!--			<scope>compile</scope>-->
+		</dependency>
+
+		<!-- Context propagation -->
+		<dependency>
+			<groupId>io.opentelemetry</groupId>
+			<artifactId>opentelemetry-context</artifactId>
+<!--			<version>${otel.version}</version>-->
+		</dependency>
+		<dependency>
+			<groupId>net.devh</groupId>
+			<artifactId>grpc-server-spring-boot-starter</artifactId>
+			<version>2.15.0.RELEASE</version>
+		</dependency>
+
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
@@ -73,6 +114,13 @@
 				<groupId>org.springframework.grpc</groupId>
 				<artifactId>spring-grpc-dependencies</artifactId>
 				<version>${spring-grpc.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>io.opentelemetry</groupId>
+				<artifactId>opentelemetry-bom</artifactId>
+				<version>1.55.0</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
