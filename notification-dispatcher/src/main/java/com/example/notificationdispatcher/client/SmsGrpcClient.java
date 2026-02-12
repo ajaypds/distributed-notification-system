@@ -1,11 +1,13 @@
 package com.example.notificationdispatcher.client;
 
+import com.example.notificationdispatcher.grpc.GrpcClientTracingInterceptor;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import com.example.notification.proto.NotificationRequest;
 import com.example.notification.proto.NotificationServiceGrpc;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import io.opentelemetry.api.OpenTelemetry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -22,10 +24,12 @@ public class SmsGrpcClient {
 
     private final NotificationServiceGrpc.NotificationServiceBlockingStub stub;
 
-    public SmsGrpcClient() {
+    public SmsGrpcClient(OpenTelemetry openTelemetry) {
+        log.info("OpenTelemetry configured for SmsGrpcClient: " + openTelemetry);
         ManagedChannel channel =
                 ManagedChannelBuilder.forAddress("sms-service", 9090)
                         .usePlaintext()
+                        .intercept(new GrpcClientTracingInterceptor(openTelemetry))
                         .build();
 
         this.stub = NotificationServiceGrpc.newBlockingStub(channel);
