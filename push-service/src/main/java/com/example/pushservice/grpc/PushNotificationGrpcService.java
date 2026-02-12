@@ -6,13 +6,15 @@ import com.example.notification.proto.NotificationServiceGrpc;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
+import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Random;
 
 @Slf4j
-@Service
+//@Service
+@GrpcService
 public class PushNotificationGrpcService
         extends NotificationServiceGrpc.NotificationServiceImplBase{
 
