@@ -56,14 +56,17 @@ public class DispatcherService {
                         log.info("Email already sent for eventId: {}", event.eventId());
                         span.setAttribute("email.sent", false);
                         span.setAttribute("email.skipped", true);
+                        span.addEvent("email_skipped_due_to_idempotency");
                     }else{
                         emailClient.send(event.userId(), event.message());
                         idempotencyService.markEmailProcessed(event.eventId());
                         span.setAttribute("email.sent", true);
+                        span.addEvent("email_sent_successfully");
                     }
                 }
                 catch(StatusRuntimeException ex){
                     span.setAttribute("email.sent", false);
+                    span.addEvent("email_send_failure");
                     log.error("Error occurred while sending event to EmailClient");
                     throw ex;
                 }
@@ -75,15 +78,18 @@ public class DispatcherService {
                         log.info("SMS already sent for eventId: {}", event.eventId());
                         span.setAttribute("sms.sent", false);
                         span.setAttribute("sms.skipped", true);
+                        span.addEvent("sms_skipped_due_to_idempotency");
                     }else{
                         smsClient.send(event.userId(), event.message());
                         idempotencyService.markSmsProcessed(event.eventId());
                         span.setAttribute("sms.sent", true);
+                        span.addEvent("sms_sent_successfully");
                     }
                 }
                 catch(StatusRuntimeException ex){
                     span.setAttribute("sms.sent", false);
                     log.error("Error occurred while sending event to SMSClient");
+                    span.addEvent("sms_send_failure");
                     throw ex;
                 }
             }
@@ -94,33 +100,39 @@ public class DispatcherService {
                         log.info("Push notification already sent for eventId: {}", event.eventId());
                         span.setAttribute("push.sent", false);
                         span.setAttribute("push.skipped", true);
+                        span.addEvent("push_skipped_due_to_idempotency");
                     }else{
                         pushClient.send(event.userId(), event.message());
                         idempotencyService.markPushProcessed(event.eventId());
                         span.setAttribute("push.sent", true);
+                        span.addEvent("push_sent_successfully");
                     }
                 }
                 catch(StatusRuntimeException ex){
                     log.error("Error occurred while sending event to PushClient");
                     span.setAttribute("push.sent", false);
+                    span.addEvent("push_send_failure");
                     throw ex;
                 }
             }
             idempotencyService.markProcessed(event.eventId());
             metrics.incrementSuccess();
             span.setStatus(StatusCode.OK);
+            span.addEvent("event_processed_successfully");
         }
         catch (StatusRuntimeException ex) {
             // gRPC / network / downstream unavailable
             log.error("Transient failure occurred at DispatcherService!");
             span.setAttribute("failure.type", "transient");
             span.setStatus(StatusCode.ERROR);
+            span.addEvent("transient_failure");
             throw new TransientFailureException("Downstream failure", ex);
         }
         catch(HttpServerErrorException ex){
             log.error("Permanent failure occurred at DispatcherService due to HttpServerErrorException!");
             span.setAttribute("failure.type", "http_server_error");
             span.setStatus(StatusCode.ERROR);
+            span.addEvent("permanent_failure_http_server_error");
             throw new PermanentFailureException("HttpServerErrorException");
         }
         catch (Exception ex) {
@@ -129,6 +141,7 @@ public class DispatcherService {
             log.error("Permanent failure occurred at DispatcherService!",ex);
             span.setAttribute("failure.type", "permanent");
             span.setStatus(StatusCode.ERROR);
+            span.addEvent("permanent_failure");
             throw new PermanentFailureException("Non-recoverable failure");
         }
         finally {

@@ -125,23 +125,31 @@ public class NotificationEventConsumer {
         try (Scope scope = span.makeCurrent()) {
             dispatcherService.process(event, extractedContext);
             span.setStatus(StatusCode.OK, "Event processed successfully");
+            span.addEvent("event_processed");
         }catch(TransientFailureException ex){
             log.error("Transient failure occurred at NotificationEventConsumer");
             if(currentRetry < KafkaRetryConstants.MAX_RETRIES){
                 log.info("Publishing event to retry topic from NotificationEventConsumer, currentRetry: {}", currentRetry);
                 retryDlqPublisher.publishToRetry(event, currentRetry + 1, extractedContext);
+                span.setStatus(StatusCode.ERROR);
                 span.addEvent("retry_scheduled");
             }else{
                 log.info("Max retries exceeded, publishing event to DLQ from NotificationEventConsumer");
-                retryDlqPublisher.publishToDlq(event, "MAX_RETRIES_EXCEEDED");
+                retryDlqPublisher.publishToDlq(event, "MAX_RETRIES_EXCEEDED", extractedContext);
+                span.setStatus(StatusCode.ERROR);
                 span.addEvent("dlq_published");
             }
             span.recordException(ex);
         }catch(PermanentFailureException ex){
             log.error("Permanent failure occurred at NotificationEventConsumer");
-            retryDlqPublisher.publishToDlq(event, "PERMANENT FAILURE");
+            retryDlqPublisher.publishToDlq(event, "PERMANENT FAILURE", extractedContext);
+            span.setStatus(StatusCode.ERROR);
+            span.addEvent("dlq_published");
             span.recordException(ex);
         } catch (Exception ex) {
+            retryDlqPublisher.publishToDlq(event, "PERMANENT FAILURE", extractedContext);
+            span.setStatus(StatusCode.ERROR);
+            span.addEvent("dlq_published");
             span.recordException(ex);
             throw ex;
         } finally {

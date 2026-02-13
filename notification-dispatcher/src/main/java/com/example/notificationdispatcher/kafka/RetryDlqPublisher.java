@@ -69,16 +69,39 @@ public class RetryDlqPublisher {
         }
     }
 
-    public void publishToDlq(NotificationEvent event, String reason) {
+    public void publishToDlq(NotificationEvent event, String reason, Context parentContext) {
+         Span span = tracer.spanBuilder("Publishing to DLQ")
+                        .setParent(parentContext)
+                        .setSpanKind(SpanKind.PRODUCER)
+                                .startSpan();
         log.info("Publishing event to DLQ: {}, reason: {}", event, reason);
         metrics.incrementDlq();
-        kafkaTemplate.send(
-                MessageBuilder
-                        .withPayload(event)
-                        .setHeader(KafkaHeaders.TOPIC, KafkaRetryConstants.DLQ_TOPIC)
-                        .setHeader(KafkaHeaders.KEY, event.eventId())
-                        .setHeader("dlq-reason", reason)
-                        .build()
-        );
+        try(Scope scope = span.makeCurrent()) {
+            kafkaTemplate.send(
+                    MessageBuilder
+                            .withPayload(event)
+                            .setHeader(KafkaHeaders.TOPIC, KafkaRetryConstants.DLQ_TOPIC)
+                            .setHeader(KafkaHeaders.KEY, event.eventId())
+                            .setHeader("dlq-reason", reason)
+                            .build()
+            );
+            span.setStatus(StatusCode.OK);
+            span.setAttribute("notification.event_id", event.eventId());
+            span.setAttribute("notification.user_id", event.userId());
+            span.setAttribute("notification.schema_version", event.schemaVersion());
+            span.setAttribute("TraceId", span.getSpanContext().getTraceId());
+            span.setAttribute("DLQ Reason", reason);
+            span.addEvent("dlq_published");
+            log.info("Published event to DLQ successfully: {}, reason: {}", event.eventId(), reason);
+        }catch(Exception ex){
+            span.recordException(ex);
+            span.setStatus(StatusCode.ERROR, "Failed to publish DLQ event");
+            log.info("Failed to publish DLQ event: {}, error: {}", event.eventId(), ex.getMessage());
+            span.addEvent("dlq_publish_failure");
+        }finally{
+            span.end();
+        }
+
+
     }
 }

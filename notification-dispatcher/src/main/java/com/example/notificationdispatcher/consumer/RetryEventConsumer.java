@@ -52,6 +52,7 @@ public class RetryEventConsumer {
             log.info("Calling dispatcher service in retry5s to process event!");
             dispatcherService.process(event, extractedContext);
             span.setStatus(StatusCode.OK, "Processed successfully");
+            span.addEvent("event_processed_successfully");
             log.info("Event processed successfully in retry5s topic: {}", event);
         }
         catch (TransientFailureException ex) {
@@ -59,12 +60,16 @@ public class RetryEventConsumer {
             span.setStatus(StatusCode.ERROR, "Transient failure");
             log.info("Transient failure occurred at retry5s, publishing event to retry topic from RetryEventConsumer. retryCount: 2");
             retryDlqPublisher.publishToRetry(event, 2, extractedContext);
+            span.setStatus(StatusCode.ERROR);
+            span.addEvent("retry_scheduled");
         }
         catch (PermanentFailureException ex) {
             span.recordException(ex);
             span.setStatus(StatusCode.ERROR, "Permanent failure");
             log.info("Permanent failure occurred at retry5s, publishing event to DLQ from RetryEventConsumer");
-            retryDlqPublisher.publishToDlq(event, "PERMANENT_FAILURE");
+            retryDlqPublisher.publishToDlq(event, "PERMANENT_FAILURE", extractedContext);
+            span.setStatus(StatusCode.ERROR);
+            span.addEvent("dlq_published");
         }finally{
             span.end();
         }
@@ -91,18 +96,23 @@ public class RetryEventConsumer {
             log.info("Calling dispatcher service in retry15s to process event!");
             dispatcherService.process(event, extractedContext);
             span.setStatus(StatusCode.OK, "Processed successfully");
+            span.addEvent("event_processed_successfully");
         }
         catch (TransientFailureException ex) {
             span.recordException(ex);
             span.setStatus(StatusCode.ERROR, "Transient failure");
             log.info("Transient failure occurred at retry15s, publishing event to retry topic from RetryEventConsumer. retryCount: 3");
             retryDlqPublisher.publishToRetry(event, 3, extractedContext);
+            span.setStatus(StatusCode.ERROR);
+            span.addEvent("retry_scheduled");
         }
         catch (PermanentFailureException ex) {
             span.recordException(ex);
             span.setStatus(StatusCode.ERROR, "Permanent failure");
             log.info("Permanent failure occurred at retry15s, publishing event to DLQ from RetryEventConsumer");
-            retryDlqPublisher.publishToDlq(event, "PERMANENT_FAILURE");
+            retryDlqPublisher.publishToDlq(event, "PERMANENT_FAILURE", extractedContext);
+            span.setStatus(StatusCode.ERROR);
+            span.addEvent("dlq_published");
         }finally{
             span.end();
         }
@@ -129,12 +139,15 @@ public class RetryEventConsumer {
             log.info("Calling dispatcher service in retry30s to process event!");
             dispatcherService.process(event, extractedContext);
             span.setStatus(StatusCode.OK, "Processed successfully");
+            span.addEvent("event_processed_successfully");
         }
         catch (Exception ex) {
             span.recordException(ex);
             span.setStatus(StatusCode.ERROR, "Transient failure");
             log.info("Transient failure occurred at retry30s, max retries exhausted, publishing event to DLQ from RetryEventConsumer");
-            retryDlqPublisher.publishToDlq(event, "RETRY_EXHAUSTED");
+            retryDlqPublisher.publishToDlq(event, "RETRY_EXHAUSTED", extractedContext);
+            span.setStatus(StatusCode.ERROR);
+            span.addEvent("dlq_published");
         }finally{
             span.end();
         }
