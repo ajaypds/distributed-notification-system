@@ -59,7 +59,7 @@ public class RetryDlqPublisher {
             span.setAttribute("TraceId", span.getSpanContext().getTraceId());
             span.setAttribute("Retry Topic", retryTopic);
             span.setStatus(StatusCode.OK, "Published to retry topic successfully");
-            log.info("Published event to retry topic successfully: {}, retryTopic: {}", event.eventId());
+            log.info("Published event to retry topic successfully: {}, retryTopic: {}", event.eventId(), retryTopic);
         }catch(Exception ex){
             span.recordException(ex);
             span.setStatus(StatusCode.ERROR, "Failed to publish retry event");
