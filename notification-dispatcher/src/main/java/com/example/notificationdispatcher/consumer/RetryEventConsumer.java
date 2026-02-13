@@ -50,7 +50,7 @@ public class RetryEventConsumer {
 
         try(Scope scope = span.makeCurrent()) {
             log.info("Calling dispatcher service in retry5s to process event!");
-            dispatcherService.process(event);
+            dispatcherService.process(event, extractedContext);
             span.setStatus(StatusCode.OK, "Processed successfully");
             log.info("Event processed successfully in retry5s topic: {}", event);
         }
@@ -89,7 +89,7 @@ public class RetryEventConsumer {
 
         try(Scope scope = span.makeCurrent()) {
             log.info("Calling dispatcher service in retry15s to process event!");
-            dispatcherService.process(event);
+            dispatcherService.process(event, extractedContext);
             span.setStatus(StatusCode.OK, "Processed successfully");
         }
         catch (TransientFailureException ex) {
@@ -127,7 +127,7 @@ public class RetryEventConsumer {
 
         try(Scope scope = span.makeCurrent()) {
             log.info("Calling dispatcher service in retry30s to process event!");
-            dispatcherService.process(event);
+            dispatcherService.process(event, extractedContext);
             span.setStatus(StatusCode.OK, "Processed successfully");
         }
         catch (Exception ex) {
