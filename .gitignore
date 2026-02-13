@@ -1,5 +1,5 @@
 docker-compose.yml
 .vscode
 postgres-data
-otel-collector-config.yaml
+# otel-collector-config.yaml
 trace.txt
