@@ -11,6 +11,7 @@ import com.example.notificationdispatcher.service.DispatcherService;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
@@ -97,6 +98,12 @@ public class NotificationEventConsumer {
 
         NotificationEvent event = record.value();
         Headers headers = record.headers();
+        Header retryCount = record.headers().lastHeader(KafkaRetryConstants.RETRY_COUNT_HEADER);
+        int currentRetry = 0;
+        if (retryCount != null) {
+            currentRetry = Integer.parseInt(new String(retryCount.value()));
+        }
+
 
         Context extractedContext =
                 openTelemetry.getPropagators()
@@ -111,9 +118,27 @@ public class NotificationEventConsumer {
                 .setParent(extractedContext)
                 .setSpanKind(SpanKind.CONSUMER)
                 .startSpan();
+        span.setAttribute("notification.event_id", event.eventId());
+        span.setAttribute("notification.user_id", event.userId());
+        span.setAttribute("notification.schema_version", event.schemaVersion());
 
         try (Scope scope = span.makeCurrent()) {
             dispatcherService.process(event);
+            span.setStatus(StatusCode.OK, "Event processed successfully");
+        }catch(TransientFailureException ex){
+            log.error("Transient failure occurred at NotificationEventConsumer");
+            if(currentRetry < KafkaRetryConstants.MAX_RETRIES){
+                log.info("Publishing event to retry topic from NotificationEventConsumer, currentRetry: {}", currentRetry);
+                retryDlqPublisher.publishToRetry(event, currentRetry + 1, extractedContext);
+            }else{
+                log.info("Max retries exceeded, publishing event to DLQ from NotificationEventConsumer");
+                retryDlqPublisher.publishToDlq(event, "MAX_RETRIES_EXCEEDED");
+            }
+            span.recordException(ex);
+        }catch(PermanentFailureException ex){
+            log.error("Permanent failure occurred at NotificationEventConsumer");
+            retryDlqPublisher.publishToDlq(event, "PERMANENT FAILURE");
+            span.recordException(ex);
         } catch (Exception ex) {
             span.recordException(ex);
             throw ex;
