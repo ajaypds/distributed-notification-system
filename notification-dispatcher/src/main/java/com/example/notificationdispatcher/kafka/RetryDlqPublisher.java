@@ -31,7 +31,13 @@ public class RetryDlqPublisher {
 
     public void publishToRetry(NotificationEvent event, int retryCount, Context parentContext) {
 
-        metrics.incrementRetry();
+        String retryLevel = switch(retryCount){
+            case 1 -> "5s";
+            case 2 -> "15s";
+            default -> "30s";
+        };
+
+        metrics.incrementRetry(retryLevel);
 
         String retryTopic = switch (retryCount) {
             case 1 -> KafkaRetryConstants.RETRY_5S;
@@ -75,6 +81,7 @@ public class RetryDlqPublisher {
                         .setSpanKind(SpanKind.PRODUCER)
                                 .startSpan();
         log.info("Publishing event to DLQ: {}, reason: {}", event, reason);
+        metrics.incrementRetry("exhausted");
         metrics.incrementDlq();
         try(Scope scope = span.makeCurrent()) {
             kafkaTemplate.send(
