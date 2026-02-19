@@ -7,8 +7,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class DispatcherMetrics {
-
-//    private final Counter retryCounter;
+    
     private final Counter dlqReplayCounter;
 
     private final MeterRegistry registry;
@@ -18,10 +17,6 @@ public class DispatcherMetrics {
 
     public DispatcherMetrics(MeterRegistry registry){
         this.registry = registry;
-
-//        this.retryCounter = Counter.builder("dispatcher_retry_total")
-//                .description("Total retry attempts")
-//                .register(registry);
 
         this.dlqReplayCounter = Counter.builder("dispatcher_dlq_replay_total")
                 .description("Total DLQ Replay events")
@@ -39,10 +34,6 @@ public class DispatcherMetrics {
                 .description("Total DLQ events")
                 .register(registry);
     }
-
-//    public void incrementRetry(){
-//        retryCounter.increment();
-//    }
 
     public void incrementRetry(String retryLevel){
         Counter.builder("dispatcher_retry_total")
