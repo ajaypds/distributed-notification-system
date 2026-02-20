@@ -7,7 +7,6 @@ import com.example.notificationdispatcher.exception.PermanentFailureException;
 import com.example.notificationdispatcher.exception.TransientFailureException;
 import com.example.notificationdispatcher.metrics.DispatcherMetrics;
 import io.grpc.StatusRuntimeException;
-import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.StatusCode;
@@ -17,8 +16,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpServerErrorException;
-
-import java.net.UnknownHostException;
 
 @Service
 @AllArgsConstructor
