@@ -6,7 +6,6 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Scope;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -23,14 +22,6 @@ public class NotificationController {
 
     private final NotificationEventProducer producer;
     private final Tracer tracer;
-
-//    @PostMapping
-//    public ResponseEntity<Void> publish(@Valid @RequestBody NotificationRequest request){
-//        log.info("Received notification request for userId: {}", request.userId());
-//        producer.publish(request);
-//        log.info("Published notification event for userId: {}", request.userId());
-//        return ResponseEntity.accepted().build();
-//    }
 
     @PostMapping
     public ResponseEntity<Void> publish(
