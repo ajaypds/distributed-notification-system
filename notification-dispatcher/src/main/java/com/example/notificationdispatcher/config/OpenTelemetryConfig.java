@@ -23,6 +23,7 @@ public class OpenTelemetryConfig {
     @Bean
     public OpenTelemetry openTelemetry() {
 
+        // Define resource attributes for the service
         Resource resource = Resource.getDefault()
                 .merge(Resource.create(
                         Attributes.of(
@@ -31,6 +32,7 @@ public class OpenTelemetryConfig {
                         )
                 ));
 
+        // Configure the OTLP exporter to send traces to the OpenTelemetry Collector
         SdkTracerProvider tracerProvider =
                 SdkTracerProvider.builder()
                         .addSpanProcessor(
@@ -43,6 +45,7 @@ public class OpenTelemetryConfig {
                         .setResource(resource)
                         .build();
 
+        // Build the OpenTelemetry SDK with the configured tracer provider and context propagators
         OpenTelemetrySdk sdk =
                 OpenTelemetrySdk.builder()
                         .setTracerProvider(tracerProvider)
@@ -53,20 +56,25 @@ public class OpenTelemetryConfig {
                         )
                         .build();
 
+        // Ensure that the tracer provider is properly shut down when the application exits
         Runtime.getRuntime().addShutdownHook(
                 new Thread(tracerProvider::close)
         );
 
+        // Return the configured OpenTelemetry instance for use in the application
         return sdk;
     }
 
+    // Define a bean for RestTemplate that will be used to make HTTP calls to the user preferences service
     @Bean
     public RestTemplate restTemplate(OpenTelemetry openTelemetry) {
 
         RestTemplate template = new RestTemplate();
 
+        // Add an interceptor to inject the current trace context into outgoing HTTP requests
         template.getInterceptors().add((request, body, execution) -> {
 
+            // Inject the current trace context into the HTTP headers using the configured propagators
             openTelemetry.getPropagators()
                     .getTextMapPropagator()
                     .inject(
@@ -75,13 +83,16 @@ public class OpenTelemetryConfig {
                             (headers, key, value) -> headers.add(key, value)
                     );
 
+            // Proceed with the HTTP request execution
             return execution.execute(request, body);
         });
 
+        // Return the configured RestTemplate for use in the application
         return template;
     }
 
 
+    // Define a bean for the OpenTelemetry Tracer, which will be used to create spans in the application
     @Bean
     public Tracer tracer(OpenTelemetry openTelemetry) {
         return openTelemetry.getTracer("notification-dispatcher");
