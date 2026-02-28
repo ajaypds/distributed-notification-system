@@ -8,7 +8,6 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.serializer.JacksonJsonSerde;
 
@@ -24,8 +23,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class DlqReplayService {
 
     private final KafkaTemplate<String, NotificationEvent> kafkaTemplate;
-//    @Value("{spring.kafka.bootstrap-servers}")
-//    private final String kafkaBootstrapServer;
     private final DispatcherMetrics metrics;
 
     public int replayAll(){
